@@ -14,7 +14,7 @@ api_id = int(os.getenv('TELEGRAM_API_ID'))
 api_hash = os.getenv('TELEGRAM_API_HASH')
 string_session = os.getenv('TELEGRAM_STRING_SESSION')
 discord_webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
-tg_channel = os.getenv('TG_CHANNEL')
+tg_channels = os.getenv('TG_CHANNELS').split(',')
 
 logging.basicConfig(level=logging.INFO)
 
@@ -60,6 +60,9 @@ async def handle_new_message(event):
         # Set timestamp
         embed.set_timestamp()
         
+        embed.add_embed_field(name="Source", value=event.chat.title)
+        embed.add_embed_field(name="username", value=sender.username or sender.first_name)
+        
         # Send to Discord
         webhook = DiscordWebhook(url=discord_webhook_url, embeds=[embed])
         
@@ -95,18 +98,17 @@ async def main():
         await client.get_dialogs()
         logging.info("Client connected successfully")
         
-        # Get channel entity
-        channel = await client.get_entity(tg_channel)
-        logging.info(f"Monitoring Telegram channel: {channel.title}")
-        
-        # Add new message handler
-        client.add_event_handler(
-            handle_new_message,
-            events.NewMessage(forwards=False, chats=channel)
-        )
+        # Get channel entities
+        for channel in [await client.get_entity(c) for c in tg_channels]:
+            logging.info(f"Monitoring Telegram channel: {channel.title}")
+            
+            client.add_event_handler(
+                handle_new_message,
+                events.NewMessage(forwards=False, chats=channel)
+            )
         
         logging.info("Starting message relay service...")
-        await client.run_until_disconnected()
+        await client.run_until_disconnected() 
             
     except Exception as e:
         logging.error(f"Failed to start client: {e}")
