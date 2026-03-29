@@ -1,7 +1,7 @@
 import os
 import logging
 
-from telethon import TelegramClient
+from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
