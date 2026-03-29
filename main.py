@@ -7,6 +7,7 @@ from discord_webhook import DiscordWebhook, DiscordEmbed
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+import asyncio
 load_dotenv()
 
 # Get environment variables
@@ -17,12 +18,6 @@ discord_webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
 tg_channels = os.getenv('TG_CHANNELS').split(',')
 
 logging.basicConfig(level=logging.INFO)
-
-client = TelegramClient(
-    StringSession(string_session), 
-    api_id, 
-    api_hash
-)
 
 async def handle_new_message(event):
     """Handle new messages from Telegram channel"""
@@ -92,6 +87,9 @@ async def handle_new_message(event):
 
 async def main():
     """Main function to start the relay"""
+    global client
+    client = TelegramClient(StringSession(string_session), api_id, api_hash)
+    
     await client.start()
     
     try:
@@ -116,5 +114,4 @@ async def main():
         await client.disconnect()
 
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(main())
